@@ -11,6 +11,7 @@ export interface EventalyzerOptions {
 export class Eventalyzer<EventType, HashKey> {
 	private readonly intervalMs: number;
 	private readonly ttlMs: number;
+	private readonly cleanupMs: number;
 	private readonly hashFn: HashFunc<EventType, HashKey>;
 	private readonly trackers: Map<HashKey, EventTracker> = new Map<HashKey, EventTracker>();
 	private intervalHandle: number | null = null;
@@ -23,6 +24,7 @@ export class Eventalyzer<EventType, HashKey> {
 		this.hashFn = hashFn;
 		this.intervalMs = opts.intervalMs;
 		this.ttlMs = opts.ttlMs;
+		this.cleanupMs = opts.cleanupMs || opts.ttlMs;
 	}
 
 	public start() {
@@ -36,7 +38,7 @@ export class Eventalyzer<EventType, HashKey> {
 			this.trackers.forEach((v: EventTracker, k: HashKey) => {
 				v.intervalTick();
 
-				if (v.total === 0) {
+				if (v.timeSinceEmptyMs >= this.cleanupMs) {
 					toDelete.push(k);
 				}
 			});

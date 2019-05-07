@@ -1,12 +1,22 @@
 import * as mocha from 'mocha';
-import { EventTracker } from '.';
+import { EventTracker } from './EventTracker';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 
 const mockIntervalMs = 100;
 const mockTtlMs = 1000;
 const expectedBuckets = mockTtlMs / mockIntervalMs;
+let clock: sinon.SinonFakeTimers;
 
 describe('EventTracker', () => {
+	beforeEach(() => {
+		clock = sinon.useFakeTimers();
+	});
+
+	afterEach(() => {
+		clock.restore();
+	});
+
 	it('does not allow a TTL shorter than the interval', () => {
 		expect(() => new EventTracker(100, 10)).to.throw();
 	});
@@ -52,6 +62,28 @@ describe('EventTracker', () => {
 		}
 
 		expect(tracker.total).to.equal(expectedBuckets);
+	});
+
+	it('knows how long it\'s been empty for when no events come in', () => {
+		const tracker = new EventTracker(mockIntervalMs, mockTtlMs);
+
+		for (let i = 0; i < 10; i++) {
+			tracker.intervalTick();
+		}
+
+		expect(tracker.timeSinceEmptyMs).to.equal(10 * mockIntervalMs);
+	});
+
+	it('does not think it\'s empty when events are coming in', () => {
+		const tracker = new EventTracker(mockIntervalMs, mockTtlMs);
+		tracker.intervalTick();
+		expect(tracker.timeSinceEmptyMs).to.equal(mockIntervalMs, 'Initial tick should have been empty');
+
+		for (let i = 0; i < 10; i++) {
+			tracker.add();
+			tracker.intervalTick();
+			expect(tracker.timeSinceEmptyMs).to.equal(0, 'Subsequent ticks should not be empty');
+		}
 	});
 });
 

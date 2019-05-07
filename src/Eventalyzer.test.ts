@@ -10,12 +10,22 @@ interface MockEvent {
 const mockIntervalMs = 100;
 const mockTtlMs = 1000;
 const mockCleanupMs = mockTtlMs * 10;
+const iterationsToClearEvents = mockTtlMs / mockIntervalMs;
+const iterationsToCleanup = mockCleanupMs / mockIntervalMs;
 const mockOpts = { intervalMs: mockIntervalMs, ttlMs: mockTtlMs, cleanupMs: mockCleanupMs };
-const clock = sinon.useFakeTimers();
+let clock: sinon.SinonFakeTimers;
 const mockUserA = 'someone';
 const mockUserB = 'another';
 
 describe('Eventalyzer', () => {
+	beforeEach(() => {
+		clock = sinon.useFakeTimers();
+	});
+
+	afterEach(() => {
+		clock.restore();
+	});
+
 	it('tracks an event', () => {
 		const eventalyzer = new Eventalyzer<MockEvent, string>(mockOpts, (m: MockEvent) => m.user);
 
@@ -85,7 +95,7 @@ describe('Eventalyzer', () => {
 
 		expect(foundUser).to.equal(true, 'should have found initial flood of events');
 
-		for (let i = 0; i < 1000; i++) {
+		for (let i = 0; i < iterationsToClearEvents; i++) {
 			clock.tick(mockIntervalMs);
 			eventalyzer.addEvent({user: mockUserA});
 		}
@@ -117,7 +127,7 @@ describe('Eventalyzer', () => {
 
 		expect(eventalyzer.currentlyTracking).to.equal(2, 'Should still be tracking both users after an interval tick');
 
-		for (let i = 0; i < mockTtlMs / mockIntervalMs; i++) {
+		for (let i = 0; i < iterationsToClearEvents; i++) {
 			eventalyzer.addEvent({ user: mockUserA});
 			clock.tick(mockIntervalMs);
 		}
@@ -126,7 +136,7 @@ describe('Eventalyzer', () => {
 
 		eventalyzer.addEvent({ user: mockUserB });
 
-		for (let i = 0; i < mockCleanupMs / mockIntervalMs; i++) {
+		for (let i = 0; i < iterationsToClearEvents + iterationsToCleanup; i++) {
 			eventalyzer.addEvent({ user: mockUserA});
 			clock.tick(mockIntervalMs);
 		}
