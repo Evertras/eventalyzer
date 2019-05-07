@@ -1,0 +1,33 @@
+{
+  "name": "eventalyzer",
+  "version": "0.0.1",
+  "description": "A simple rules engine to watch an arbitrary stream of events",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha -r ts-node/register src/**/*.test.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Evertras/eventalyzer.git"
+  },
+  "author": "Brandon Fulljames",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Evertras/eventalyzer/issues"
+  },
+  "homepage": "https://github.com/Evertras/eventalyzer#readme",
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.6",
+    "@types/sinon": "^7.0.11",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "sinon": "^7.3.2",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.5"
+  },
+  "dependencies": {
+    "eventemitter2": "^5.0.1"
+  }
+}
